@@ -12,6 +12,7 @@ from loguru import logger
 from gym_carla.controllers.barc_pid import PIDWrapper
 from gym_carla.controllers.barc_pid_ref_tracking import PIDRacelineFollowerWrapper
 from torch.distributions import Normal
+from mpcexp.controllers import AttackerBarcWrapper, DefenderBarcWrapper, KinematicBicycleBarcWrapper
 
 
 def main(seed=0):
@@ -27,8 +28,9 @@ def main(seed=0):
 
     # Create the two-car racing environment
     controller_type = [PIDRacelineFollowerWrapper, PIDRacelineFollowerWrapper]
-    ego_controller = controller_type[0](dt=dt, t0=t0, track_obj=get_track(track_name))
-    opponent_controller = controller_type[1](dt=dt, t0=t0, track_obj=get_track(track_name))
+    ego_controller = AttackerBarcWrapper(dt=dt, t0=t0, track_obj=get_track(track_name), experiment="RA-GTP")
+    opponent_controller = DefenderBarcWrapper(dt=dt, t0=t0, track_obj=get_track(track_name))
+    # kinBicycleMPC = KinematicBicycleBarcWrapper(dt=dt, t0=t0, track_obj=get_track(track_name))
 
     env = gym.make('barc-v1',
                    # opponent=opponent_controller,
@@ -45,8 +47,9 @@ def main(seed=0):
     ob, info = env.reset(seed=seed, options={'spawning': 'fixed'})
 
     # Reset the controllers
-    ego_controller.reset(seed=seed, options={'vehicle_state': info['ego']['vehicle_state']})
-    opponent_controller.reset(seed=seed, options={'vehicle_state': info['ego']['vehicle_state']})
+    ego_controller.reset(seed=seed, vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
+    opponent_controller.reset(seed=seed, vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
+    # kinBicycleMPC.reset(seed=seed, vehicle_state=info['oppo']['vehicle_state'])
 
     # Initialize variables
     rew, terminated, truncated = None, False, False
@@ -58,10 +61,12 @@ def main(seed=0):
         # Get actions from both controllers
         # Note: Your step function can take anything that the environment outputs, including the entire info dictionary and the observation vector.
         # See the details in multibarc_env.py.
-        ego_action, _ = ego_controller.step(vehicle_state=info['ego']['vehicle_state'], terminated=info['ego']['terminated'],
+        ego_action, att_sol , _= ego_controller.step(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'], terminated=info['ego']['terminated'],
                                             lap_no=info['ego']['lap_no'])
-        oppo_action, _ = opponent_controller.step(vehicle_state=info['oppo']['vehicle_state'], terminated=info['oppo']['terminated'],
-                                             lap_no=info['oppo']['lap_no'])
+        oppo_action, _ = opponent_controller.step(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'], att_sol=att_sol, terminated=info['oppo']['terminated'],
+                                            lap_no=info['oppo']['lap_no'])
+        # oppo_action, _ = kinBicycleMPC.step(vehicle_state=info['oppo']['vehicle_state'], terminated=info['ego']['terminated'],
+        #                                     lap_no=info['ego']['lap_no'])
         # Step the environment
         ob, rew, terminated, truncated, info = env.step({'ego': ego_action, 'oppo': oppo_action})
 
@@ -69,8 +74,8 @@ def main(seed=0):
         if terminated['__all__'] or truncated['__all__']:
             episode_count += 1
             ob, info = env.reset()
-            ego_controller.reset(seed=seed, options={'vehicle_state': info['ego']['vehicle_state']})
-            opponent_controller.reset(seed=seed, options={'vehicle_state': info['oppo']['vehicle_state']})
+            ego_controller.reset(seed=seed, vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
+            opponent_controller.reset(seed=seed, vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
 
             # Add a small delay between episodes
             time.sleep(1)
