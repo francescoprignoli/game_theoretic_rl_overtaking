@@ -63,7 +63,7 @@ class MultiBarcEnv(MultiAgentEnv):
 
         # Create exactly 2 dynamics simulators
         self.dynamics_simulator = [
-            DynamicsSimulator(t0, self.sim_dynamics_config, delay=None, track=self.track_obj) for _ in range(2)
+            DynamicsSimulator(t0, self.sim_dynamics_config, delay=[0.1, 0.1], track=self.track_obj) for _ in range(2)
         ]
 
         if enable_camera:
