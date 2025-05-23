@@ -1,0 +1,33 @@
+[submodule "src/mpcexp"]
+	path = src/mpcexp
+	url = git@github.com:francescoprignoli/mpcexp.git
+[submodule "src/barc_launch"]
+	path = ros2_ws/src/barc_launch
+	url = git@github.com:MPC-Berkeley/barc_launch.git
+[submodule "src/mpclab_estimation"]
+	path = ros2_ws/src/mpclab_estimation
+	url = git@github.com:MPC-Berkeley/mpclab_estimation.git
+[submodule "src/optitrack_client"]
+	path = ros2_ws/src/optitrack_client
+	url = git@github.com:MPC-Berkeley/optitrack_client.git
+[submodule "ros2_ws/src/mpclab_common"]
+	path = ros2_ws/src/mpclab_common
+	url = git@github.com:MPC-Berkeley/mpclab_common.git
+[submodule "ros2_ws/src/mpclab_controllers"]
+	path = ros2_ws/src/mpclab_controllers
+	url = git@github.com:MPC-Berkeley/mpclab_controllers.git
+[submodule "ros2_ws/src/barc_launch"]
+	path = ros2_ws/src/barc_launch
+	url = git@github.com:MPC-Berkeley/barc_launch.git
+[submodule "ros2_ws/src/mpclab_estimation"]
+	path = ros2_ws/src/mpclab_estimation
+	url = git@github.com:MPC-Berkeley/mpclab_estimation.git
+[submodule "ros2_ws/src/optitrack_client"]
+	path = ros2_ws/src/optitrack_client
+	url = git@github.com:MPC-Berkeley/optitrack_client.git
+[submodule "ros2_ws/src/mpclab_msgs"]
+	path = ros2_ws/src/mpclab_msgs
+	url = git@github.com:MPC-Berkeley/mpclab_msgs.git
+[submodule "ros2_ws/src/mpclab_visualizations"]
+	path = ros2_ws/src/mpclab_visualizations
+	url = git@github.com:MPC-Berkeley/mpclab_visualizations.git
