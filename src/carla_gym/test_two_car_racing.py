@@ -68,9 +68,9 @@ def main(seed=0):
     ob, info = env.reset(seed=seed, options={'spawning': 'fixed'})
 
     # Reset the controllers
-    ego_controller.reset(seed=seed, vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
-    opponent_controller.reset(seed=seed, vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
-    # kinBicycleMPC.reset(seed=seed, vehicle_state=info['oppo']['vehicle_state'])
+    ego_controller.reset(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
+    opponent_controller.reset(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
+    # kinBicycleMPC.reset(vehicle_state=info['oppo']['vehicle_state'])
     log_def = []
     log_att = []
 
@@ -107,8 +107,8 @@ def main(seed=0):
             log_att = []
             episode_count += 1
             ob, info = env.reset()
-            ego_controller.reset(seed=seed, vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
-            opponent_controller.reset(seed=seed, vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
+            ego_controller.reset(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
+            opponent_controller.reset(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
 
             # Add a small delay between episodes
             time.sleep(1)
