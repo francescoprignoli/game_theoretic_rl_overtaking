@@ -114,10 +114,11 @@ class MultiBarcEnv(MultiAgentEnv):
         self.max_eps_speed, self.min_eps_speed, self._sum_eps_speed = [[0, 0] for _ in range(3)]
         self.eps_len = 0
 
-        self.collision_threshold = 0.3
+        self.collision_threshold = 0.2
         self.low_speed_threshold = 0.25
         self.wrong_direction_threshold = np.pi / 2
-        self.overtake_margin = -0.5
+        self.overtake_margin = -1.5
+        self.spawn_rel_dist = 4.0
 
     def get_track(self):
         return self.track_obj
@@ -191,7 +192,7 @@ class MultiBarcEnv(MultiAgentEnv):
 
             # Initialize exactly 2 vehicles with fixed spacing
             self.sim_state = [VehicleState(t=0.0,
-                                           p=ParametricPose(s=0.1 + 2 * i, x_tran=0),
+                                           p=ParametricPose(s=0.1 + self.spawn_rel_dist * i, x_tran=0),
                                            e=OrientationEuler(psi=0),
                                            v=BodyLinearVelocity(v_long=0.5, v_tran=0),
                                            w=BodyAngularVelocity(w_psi=0)) for i in range(2)]
@@ -199,7 +200,7 @@ class MultiBarcEnv(MultiAgentEnv):
             # Initialize exactly 2 vehicles with random positions
             _s = np.random.uniform(0.1, self.track_obj.track_length - 4)
             self.sim_state = [VehicleState(t=0.0,
-                                           p=ParametricPose(s=_s + 2 * i,
+                                           p=ParametricPose(s=_s + self.spawn_rel_dist * i,
                                                             x_tran=np.random.uniform(
                                                                 -self.track_obj.half_width / 2,
                                                                 self.track_obj.half_width / 2),
