@@ -12,7 +12,7 @@ from loguru import logger
 from gym_carla.controllers.barc_pid import PIDWrapper
 from gym_carla.controllers.barc_pid_ref_tracking import PIDRacelineFollowerWrapper
 from torch.distributions import Normal
-from mpcexp.controllers import AttackerBarcWrapper, DefenderBarcWrapper, KinematicBicycleBarcWrapper
+from mpcexp.controllers import AttackerBarcWrapper, DefenderBarcWrapper, BicycleBarcWrapper
 from mpcexp.utils.utils_fun import save_sim_data
 import signal
 import sys
@@ -49,8 +49,9 @@ def main(seed=0):
     # Create the two-car racing environment
     controller_type = [PIDRacelineFollowerWrapper, PIDRacelineFollowerWrapper]
     delay_steps = 1
-    ego_controller = AttackerBarcWrapper(experiment="RA-GTP", delay_steps=delay_steps)
-    opponent_controller = DefenderBarcWrapper(delay_steps=delay_steps)
+    vehicle_model = "kinematic"
+    ego_controller = AttackerBarcWrapper(experiment="RA-GTP", delay_steps=delay_steps, vehicle_model=vehicle_model)
+    opponent_controller = DefenderBarcWrapper(delay_steps=delay_steps, vehicle_model=vehicle_model)
     # kinBicycleMPC = KinematicBicycleBarcWrapper(dt=dt, t0=t0, track_obj=get_track(track_name))
 
     env = gym.make('barc-v1',
@@ -84,12 +85,9 @@ def main(seed=0):
         # Get actions from both controllers
         # Note: Your step function can take anything that the environment outputs, including the entire info dictionary and the observation vector.
         # See the details in multibarc_env.py.
-        ego_action, att_sol, opp_sol= ego_controller.step(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'], terminated=info['ego']['terminated'],
-                                            lap_no=info['ego']['lap_no'])
-        oppo_action, def_sol = opponent_controller.step(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'], att_sol=att_sol, terminated=info['oppo']['terminated'],
-                                            lap_no=info['oppo']['lap_no'])
-        # oppo_action, _ = kinBicycleMPC.step(vehicle_state=info['oppo']['vehicle_state'], terminated=info['ego']['terminated'],
-        #                                     lap_no=info['ego']['lap_no'])
+        ego_action, att_sol, opp_sol= ego_controller.step(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
+        oppo_action, def_sol = opponent_controller.step(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'], att_sol=att_sol)
+        # oppo_action, _ = kinBicycleMPC.step(vehicle_state=info['oppo']['vehicle_state'])
         # Step the environment
         ob, rew, terminated, truncated, info = env.step({'ego': ego_action, 'oppo': oppo_action})
 
