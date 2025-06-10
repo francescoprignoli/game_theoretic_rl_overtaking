@@ -1,13 +1,25 @@
 import argparse
 import numpy as np
 import mpcexp
-from mpcexp.utils.utils_fun import load_sim_data
+from pathlib import Path
+from mpcexp.utils.utils_fun import load_sim_data, dat2pkl, load_raw_data, unflatten_to_dict_of_lists
 
 
-def main(filename, replay_speed=1, save_video=False):
+def main(filename, replay_speed=1, save_video=False, root=None):
 
     # ----- Load Data -----
-    data = load_sim_data(filename=filename)
+    # if not Path(filename).exists():
+    data, size = load_raw_data(filename, root)
+    unflat_data = unflatten_to_dict_of_lists(data, log_size=size)
+    # Fix key names
+    # unflat_data["def"] = unflat_data.pop("log_def")
+    # unflat_data["att"] = unflat_data.pop("log_att")
+
+    unflat_data = [unflat_data]
+
+    # dat2pkl(data, root)
+    # else:
+    #     data = load_sim_data(filename=filename)
 
     Ts = 0.1  # Sampling time in seconds
     track_file = "L_track_barc_race.json"  # Track file name
@@ -17,11 +29,15 @@ def main(filename, replay_speed=1, save_video=False):
     )
 
     # ----- Plot/Animate the Results -----
-    mpcexp.IBR.plot_time([el["IBR_time"] for log in data for el in log["att"]])
-    mpcexp.IBR.plot_time([el["IBR_time"] for log in data for el in log["def"]])
+    try:
+        mpcexp.IBR.plot_time([el["IBR_time"] for log in unflat_data for el in log["att"]])
+        mpcexp.IBR.plot_time([el["IBR_time"] for log in unflat_data for el in log["def"]])
+    except TypeError:
+        import pdb
+        pdb.set_trace()
 
     animator.animation_side_by_side(
-        sim_data=data,
+        sim_data=unflat_data,
         save_video=save_video,
         replay_speed=replay_speed,
         follow_ego=False,
@@ -31,7 +47,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--filename",
+        "--filename", '-f',
         type=str,
         required=True,
         help="Name of the simulation data file (required)",
