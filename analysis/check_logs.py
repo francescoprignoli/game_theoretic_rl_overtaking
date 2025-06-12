@@ -9,8 +9,8 @@ from mpcexp.utils.utils_fun import save_sim_data, dat2pkl, load_raw_data
 from collections import defaultdict
 
 
-def main(dir_name, root=None):
-    data, size = load_raw_data(dir_name, root)
+def main(dir_name, root=None, player=None):
+    data, size = load_raw_data(dir_name, root, player)
     track_obj = get_track('L_track_barc')
     fig, ax = plt.subplots()
     ax.plot(data['attacker_state'][:, 0], data['attacker_state'][:, 1], '.-', label='attacker')
@@ -35,5 +35,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--root', type=str)
     parser.add_argument('-f', '--file', type=str)
+    parser.add_argument('-p', '--player', type=str)
     args = parser.parse_args()
-    main(dir_name=args.file, root=args.root)
+    main(dir_name=args.file, root=args.root, player=args.player)

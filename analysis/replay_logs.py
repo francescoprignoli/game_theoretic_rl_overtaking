@@ -8,9 +8,16 @@ from mpcexp.utils.utils_fun import load_sim_data, dat2pkl, load_raw_data, unflat
 def main(filename, replay_speed=1, save_video=False, root=None):
 
     # ----- Load Data -----
-    # if not Path(filename).exists():
-    data, size = load_raw_data(filename, root)
-    unflat_data = unflatten_to_dict_of_lists(data, log_size=size)
+    att_data, att_size = load_raw_data(filename, root, player='attacker')
+    att_unflat_data = unflatten_to_dict_of_lists(att_data, log_size=att_size)
+
+    def_data, def_size = load_raw_data(filename, root, player='defender')
+    def_unflat_data = unflatten_to_dict_of_lists(def_data, log_size=def_size)
+
+    size = min(att_size, def_size)
+    unflat_data = {k: v[:size] for k, v in att_unflat_data.items()}
+    unflat_data.update({k: v[:size] for k, v in def_unflat_data.items() if k != 'attacker_state'})
+
     # Fix key names
     # unflat_data["def"] = unflat_data.pop("log_def")
     # unflat_data["att"] = unflat_data.pop("log_att")
