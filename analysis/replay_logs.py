@@ -5,7 +5,7 @@ from pathlib import Path
 from mpcexp.utils.utils_fun import load_sim_data, dat2pkl, load_raw_data, unflatten_to_dict_of_lists
 
 
-def main(filename, replay_speed=1, save_video=False, root=None, unified=False):
+def main(filename, replay_speed=1, save_video=False, t_start=0.0, unified=False, root=None):
     # ----- Load Data -----
     if not unified:
         att_data, att_size = load_raw_data(filename, root, player='attacker')
@@ -52,6 +52,8 @@ def main(filename, replay_speed=1, save_video=False, root=None, unified=False):
         save_video=save_video,
         replay_speed=replay_speed,
         follow_ego=False,
+        buffer=5,
+        t_start=t_start,
     )
 
 if __name__ == "__main__":
@@ -75,10 +77,16 @@ if __name__ == "__main__":
         help="Flag to save the animation as a video file (default: False)",
     )
     parser.add_argument(
+        "--t_start",
+        type=float,
+        default=0.0,
+        help="Start time for the animation (default: 0.0)",
+    )
+    parser.add_argument(
         '--unified',
         action='store_true',
         help="Flag to indicate if the simulation data is unified (default: False)",
     )
     args = parser.parse_args()
 
-    main(args.filename, args.replay_speed, args.save_video, unified=args.unified)
+    main(args.filename, args.replay_speed, args.save_video, t_start=args.t_start, unified=args.unified)

@@ -21,7 +21,7 @@ class MultiBarcEnv(MultiAgentEnv):
 
     def __init__(self, track_name, t0=0., dt=0.1, dt_sim=0.01, max_n_laps=5, max_steps=300,
                  do_render=False, enable_camera=False, host='localhost', port=2000,
-                 discrete_action: bool = False):
+                 discrete_action: bool = False, overtake_margin = -1.5, spawn_rel_dist = 4.0):
         super().__init__()
         self.possible_agents = ["ego", "oppo"]
         self.agents = ["ego", "oppo"]
@@ -63,7 +63,7 @@ class MultiBarcEnv(MultiAgentEnv):
 
         # Create exactly 2 dynamics simulators
         self.dynamics_simulator = [
-            DynamicsSimulator(t0, self.sim_dynamics_config, delay=[0.1, 0.1], track=self.track_obj) for _ in range(2)
+            DynamicsSimulator(t0, self.sim_dynamics_config, delay=[0.2, 0.2], track=self.track_obj) for _ in range(2)
         ]
 
         if enable_camera:
@@ -117,8 +117,8 @@ class MultiBarcEnv(MultiAgentEnv):
         self.collision_threshold = 0.2
         self.low_speed_threshold = 0.25
         self.wrong_direction_threshold = np.pi / 2
-        self.overtake_margin = -1.5
-        self.spawn_rel_dist = 4.0
+        self.overtake_margin = overtake_margin
+        self.spawn_rel_dist = spawn_rel_dist
 
     def get_track(self):
         return self.track_obj
