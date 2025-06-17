@@ -48,8 +48,8 @@ def main(seed=0):
 
     # Create the two-car racing environment
     controller_type = [PIDRacelineFollowerWrapper, PIDRacelineFollowerWrapper]
-    delay_steps = 1
-    vehicle_model = "kinematic"
+    delay_steps = 2
+    vehicle_model = "dynamic"
     ego_controller = AttackerBarcWrapper(experiment="RA-GTP", delay_steps=delay_steps, vehicle_model=vehicle_model)
     opponent_controller = DefenderBarcWrapper(delay_steps=delay_steps, vehicle_model=vehicle_model)
     # kinBicycleMPC = KinematicBicycleBarcWrapper(dt=dt, t0=t0, track_obj=get_track(track_name))
@@ -60,7 +60,10 @@ def main(seed=0):
                    t0=t0, dt=dt, dt_sim=dt_sim,
                    do_render=True,
                    enable_camera=False,
-                   discrete_action=False)
+                   discrete_action=False,
+                   max_steps=2048,
+                   overtake_margin=-1e3,
+                   spawn_rel_dist=-8.0)
 
     # Bind the controllers to the environment
     env.unwrapped.bind_controller(ego_controller)
@@ -85,15 +88,15 @@ def main(seed=0):
         # Get actions from both controllers
         # Note: Your step function can take anything that the environment outputs, including the entire info dictionary and the observation vector.
         # See the details in multibarc_env.py.
-        ego_action, att_sol, opp_sol= ego_controller.step(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
-        oppo_action, def_sol = opponent_controller.step(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'], att_sol=att_sol)
+        ego_action, att_sol, def_sol_pred= ego_controller.step(vehicle_state=info['ego']['vehicle_state'], opp_state=info['oppo']['vehicle_state'])
+        oppo_action, def_sol, att_sol_pred = opponent_controller.step(vehicle_state=info['oppo']['vehicle_state'], opp_state=info['ego']['vehicle_state'])
         # oppo_action, _ = kinBicycleMPC.step(vehicle_state=info['oppo']['vehicle_state'])
         # Step the environment
         ob, rew, terminated, truncated, info = env.step({'ego': ego_action, 'oppo': oppo_action})
 
         # Log the data.
-        log_att.append(ego_controller.get_log_dict(att_sol, opp_sol=opp_sol))
-        log_def.append(opponent_controller.get_log_dict(def_sol, opp_sol=att_sol))
+        log_att.append(ego_controller.get_log_dict(att_sol, opp_sol=def_sol_pred))
+        log_def.append(opponent_controller.get_log_dict(def_sol, opp_sol=att_sol_pred))
 
         # Log episode results
         if terminated['__all__'] or truncated['__all__']:
